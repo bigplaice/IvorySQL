@@ -944,7 +944,7 @@ select EXTRACTVALUE(warehouse_spec, '//@name') from warehouse_2 where warehouse_
 
 -- BUG#Z215
 -- ok
-select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD','RRR', xmltype ('<RRR><TTT>test</TTT><SSS>test</SSS></RRR>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"') 
+select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD','RRR', xmltype ('<RRR><TTT>test</TTT><SSS>test</SSS></RRR>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"')
  from warehouse_2 where warehouse_id = 4;
                                                                insertchildxml                                                               
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -975,7 +975,7 @@ select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web
 (1 row)
 
 -- ok
-select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD','typ:TTT', xmltype ('<typ:TTT xmlns:typ="http://www.def.com">test</typ:TTT>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"') 
+select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD','typ:TTT', xmltype ('<typ:TTT xmlns:typ="http://www.def.com">test</typ:TTT>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"')
  from warehouse_2 where warehouse_id = 4;
                                                                insertchildxml                                                               
 --------------------------------------------------------------------------------------------------------------------------------------------
@@ -1003,23 +1003,23 @@ select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web
 (1 row)
 
 -- error
-select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD','yyy:TTT', xmltype ('<typ:TTT xmlns:typ="http://www.def.com">test</typ:TTT>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"') 
+select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD','yyy:TTT', xmltype ('<typ:TTT xmlns:typ="http://www.def.com">test</typ:TTT>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"')
  from warehouse_2 where warehouse_id = 4;
 ERROR:  The document being inserted does not conform to specified child name
 -- error
-select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD','yyy:TTT', xmltype ('<typ:TTT xmlns:typ="http://www.def.com">yyy:TTT</typ:TTT>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"') 
+select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD','yyy:TTT', xmltype ('<typ:TTT xmlns:typ="http://www.def.com">yyy:TTT</typ:TTT>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"')
  from warehouse_2 where warehouse_id = 4;
 ERROR:  The document being inserted does not conform to specified child name
 -- error
-select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD','typ:TTT', xmltype ('<typ::TTT xmlns:typ="http://www.def.com">test</typ::TTT>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"') 
+select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD','typ:TTT', xmltype ('<typ::TTT xmlns:typ="http://www.def.com">test</typ::TTT>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"')
  from warehouse_2 where warehouse_id = 4;
 ERROR:  The document being inserted does not conform to specified child name
 -- error
-select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD',':', xmltype ('<typ:TTT xmlns:typ="http://www.def.com">typ:TTT</typ:TTT>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"') 
+select INSERTCHILDXML(warehouse_spec, 'soapenv:Envelope/soapenv:Body/web:AAA/web:BBB/typ:DDD/typ:DDDs/typ:DDD',':', xmltype ('<typ:TTT xmlns:typ="http://www.def.com">typ:TTT</typ:TTT>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"')
  from warehouse_2 where warehouse_id = 4;
 ERROR:  The document being inserted does not conform to specified child name
 -- error
-select INSERTCHILDXML(warehouse_spec, 'Envelope/Body/AAA/BBB/DDD/DDDs', 'TTT', xmltype ('<yy><TTT>test</TTT></yy>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"') 
+select INSERTCHILDXML(warehouse_spec, 'Envelope/Body/AAA/BBB/DDD/DDDs', 'TTT', xmltype ('<yy><TTT>test</TTT></yy>'), 'xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:typ="http://www.def.com" xmlns:web="http://www.abc.com"')
  from warehouse_2 where warehouse_id = 1;
 ERROR:  The document being inserted does not conform to specified child name
 drop table warehouse_2;
