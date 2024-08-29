@@ -65,6 +65,11 @@
 #include "catalog/pg_ts_template.h"
 #include "catalog/pg_type.h"
 #include "catalog/pg_user_mapping.h"
+/* Begin - ReqID:SRS-SQL-PACKAGE */
+#include "catalog/pg_package.h"
+#include "catalog/pg_package_body.h"
+#include "commands/packagecmds.h"
+/* End - ReqID:SRS-SQL-PACKAGE */
 #include "commands/comment.h"
 #include "commands/defrem.h"
 #include "commands/event_trigger.h"
@@ -85,6 +90,10 @@
 #include "utils/guc.h"
 #include "utils/lsyscache.h"
 #include "utils/syscache.h"
+/* Begin - ReqID:SRS-SQL-PACKAGE */
+#include "utils/packagecache.h"
+/* End - ReqID:SRS-SQL-PACKAGE */
+
 
 
 /*
@@ -188,7 +197,11 @@ static const Oid object_classes[] = {
 	PublicationRelationId,		/* OCLASS_PUBLICATION */
 	PublicationRelRelationId,	/* OCLASS_PUBLICATION_REL */
 	SubscriptionRelationId,		/* OCLASS_SUBSCRIPTION */
-	TransformRelationId			/* OCLASS_TRANSFORM */
+	TransformRelationId,			/* OCLASS_TRANSFORM */
+	/* Begin - ReqID:SRS-SQL-PACKAGE */
+	PackageRelationId,			/* OCLASS_PACKAGE */
+	PackageBodyRelationId		/* OCLASS_PACKAGE_BODY */
+	/* End - ReqID:SRS-SQL-PACKAGE */
 };
 
 /*
@@ -1435,6 +1448,16 @@ doDeletion(const ObjectAddress *object, int flags)
 			RemoveFunctionById(object->objectId);
 			break;
 
+		/* Begin - ReqID:SRS-SQL-PACKAGE */
+		case OCLASS_PACKAGE:
+			DropPackageById(object->objectId);
+			break;
+
+		case OCLASS_PACKAGE_BODY:
+			DropPackageBodyById(object->objectId);
+			break;
+		/* End - ReqID:SRS-SQL-PACKAGE */
+
 		case OCLASS_TYPE:
 			RemoveTypeById(object->objectId);
 			break;
@@ -1923,6 +1946,24 @@ find_expr_references_walker(Node *node,
 		if (FUNC_EXPR_FROM_PG_PROC(funcexpr->function_from))
 			add_object_address(OCLASS_PROC, funcexpr->funcid, 0,
 						   context->addrs);
+		/* Begin - ReqID:SRS-SQL-PACKAGE */
+		else
+		{
+			Oid			funcoid = InvalidOid;
+			bool is_package = false;
+
+			funcoid = get_top_function_info(funcexpr, &is_package);
+			if (OidIsValid(funcoid))
+			{
+				if (is_package)
+					add_object_address(OCLASS_PACKAGE, funcoid, 0,
+							context->addrs);
+				else
+					add_object_address(OCLASS_PROC, funcoid, 0,
+						   context->addrs);
+			}
+		}
+		/* End - ReqID:SRS-SQL-PACKAGE */
 
 		/* fall through to examine arguments */
 	}
@@ -2968,6 +3009,13 @@ getObjectClass(const ObjectAddress *object)
 
 		case TransformRelationId:
 			return OCLASS_TRANSFORM;
+
+		/* Begin - ReqID:SRS-SQL-PACKAGE */
+		case PackageRelationId:
+			return OCLASS_PACKAGE;
+		case PackageBodyRelationId:
+			return OCLASS_PACKAGE_BODY;
+		/* End - ReqID:SRS-SQL-PACKAGE */
 	}
 
 	/* shouldn't get here */
