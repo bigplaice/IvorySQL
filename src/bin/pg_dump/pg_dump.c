@@ -8704,6 +8704,7 @@ getTableAttrs(Archive *fout, TableInfo *tblinfo, int numTables)
 	int			i_attoptions;
 	int			i_attcollation;
 	int			i_attcompression;
+	int			i_attisinvisible;
 	int			i_attfdwoptions;
 	int			i_attmissingval;
 	int			i_atthasdef;
@@ -8813,6 +8814,14 @@ getTableAttrs(Archive *fout, TableInfo *tblinfo, int numTables)
 	else
 		appendPQExpBufferStr(q,
 							 "'' AS attcompression,\n");
+	
+	if (fout->remoteVersion >= 170000)
+		appendPQExpBuffer(q,
+						"a.attisinvisible,\n");
+	else
+		appendPQExpBuffer(q,
+							"'f' AS attisinvisible,\n");
+
 
 	if (fout->remoteVersion >= 100000)
 		appendPQExpBufferStr(q,
@@ -8888,6 +8897,7 @@ getTableAttrs(Archive *fout, TableInfo *tblinfo, int numTables)
 	i_attoptions = PQfnumber(res, "attoptions");
 	i_attcollation = PQfnumber(res, "attcollation");
 	i_attcompression = PQfnumber(res, "attcompression");
+	i_attisinvisible = PQfnumber(res, "attisinvisible");
 	i_attfdwoptions = PQfnumber(res, "attfdwoptions");
 	i_attmissingval = PQfnumber(res, "attmissingval");
 	i_atthasdef = PQfnumber(res, "atthasdef");
@@ -8950,6 +8960,7 @@ getTableAttrs(Archive *fout, TableInfo *tblinfo, int numTables)
 		tbinfo->attoptions = (char **) pg_malloc(numatts * sizeof(char *));
 		tbinfo->attcollation = (Oid *) pg_malloc(numatts * sizeof(Oid));
 		tbinfo->attcompression = (char *) pg_malloc(numatts * sizeof(char));
+		tbinfo->attisinvisible = (bool *) pg_malloc(ntups * sizeof(bool));
 		tbinfo->attfdwoptions = (char **) pg_malloc(numatts * sizeof(char *));
 		tbinfo->attmissingval = (char **) pg_malloc(numatts * sizeof(char *));
 		tbinfo->notnull_constrs = (char **) pg_malloc(numatts * sizeof(char *));
@@ -9109,6 +9120,7 @@ getTableAttrs(Archive *fout, TableInfo *tblinfo, int numTables)
 			tbinfo->attoptions[j] = pg_strdup(PQgetvalue(res, r, i_attoptions));
 			tbinfo->attcollation[j] = atooid(PQgetvalue(res, r, i_attcollation));
 			tbinfo->attcompression[j] = *(PQgetvalue(res, r, i_attcompression));
+			tbinfo->attisinvisible[j] = (PQgetvalue(res, j, i_attisinvisible)[0] == 't');
 			tbinfo->attfdwoptions[j] = pg_strdup(PQgetvalue(res, r, i_attfdwoptions));
 			tbinfo->attmissingval[j] = pg_strdup(PQgetvalue(res, r, i_attmissingval));
 			tbinfo->attrdefs[j] = NULL; /* fix below */
@@ -16689,6 +16701,13 @@ dumpTableSchema(Archive *fout, const TableInfo *tbinfo)
 									  tbinfo->notnull_constrs[j],
 									  fmtId(tbinfo->attnames[j]));
 			}
+			
+			/*
+			 * Dump per-column invisible information.
+			 */
+			if (tbinfo->attisinvisible[j])
+				appendPQExpBufferStr(q, " INVISIBLE");
+
 
 			/*
 			 * Dump per-column statistics information. We only issue an ALTER
