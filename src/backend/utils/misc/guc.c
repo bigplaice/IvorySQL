@@ -597,6 +597,8 @@ char	   *event_source;
 bool		row_security;
 bool		check_function_bodies = true;
 
+bool		skip_partition_constraint = false;
+
 
 /*
  * This GUC exists solely for backward compatibility, check its definition for
@@ -2146,6 +2148,17 @@ static struct config_bool ConfigureNamesBool[] =
 			gettext_noop("Sets whether a WAL receiver should create a temporary replication slot if no permanent slot is configured."),
 		},
 		&wal_receiver_create_temp_slot,
+		false,
+		NULL, NULL, NULL
+	},
+
+	{
+		{"attach_partition_without_constraint_check", PGC_USERSET, CUSTOM_OPTIONS,
+			gettext_noop("skip constraint check when attach partition."),
+			NULL,
+			GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
+		},
+		&skip_partition_constraint,
 		false,
 		NULL, NULL, NULL
 	},

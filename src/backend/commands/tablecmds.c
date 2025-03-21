@@ -182,6 +182,7 @@ typedef struct AlteredTableInfo
 	Expr	   *partition_constraint;	/* for attach partition validation */
 	/* true, if validating default due to some other attach/detach */
 	bool		validate_default;
+	bool		skip_partition_constraint; 
 	/* Objects to rebuild after completing ALTER TYPE operations */
 	List	   *changedConstraintOids;	/* OIDs of constraints to rebuild */
 	List	   *changedConstraintDefs;	/* string definitions of same */
@@ -590,7 +591,8 @@ static ObjectAddress ATExecAttachPartition(List **wqueue, Relation rel,
 static void AttachPartitionEnsureIndexes(Relation rel, Relation attachrel);
 static void QueuePartitionConstraintValidation(List **wqueue, Relation scanrel,
 											   List *partConstraint,
-											   bool validate_default);
+											   bool validate_default,
+											   bool skip_partition_constraint);
 static void CloneRowTriggersToPartition(Relation parent, Relation partition);
 static void DetachAddConstraintIfNeeded(List **wqueue, Relation partRel);
 static void DropClonedTriggersFromPartition(Oid partitionId);
@@ -5672,7 +5674,7 @@ ATRewriteTable(AlteredTableInfo *tab, Oid OIDNewHeap, LOCKMODE lockmode)
 	}
 
 	/* Build expression execution states for partition check quals */
-	if (tab->partition_constraint)
+	if (tab->partition_constraint && !tab->skip_partition_constraint)
 	{
 		needscan = true;
 		partqualstate = ExecPrepareExpr(tab->partition_constraint, estate);
@@ -17175,7 +17177,8 @@ ConstraintImpliedByRelConstraint(Relation scanrel, List *testConstraint, List *p
 static void
 QueuePartitionConstraintValidation(List **wqueue, Relation scanrel,
 								   List *partConstraint,
-								   bool validate_default)
+								   bool validate_default,
+								   bool skip_partition_constraint)
 {
 	/*
 	 * Based on the table's existing constraints, determine whether or not we
@@ -17208,6 +17211,7 @@ QueuePartitionConstraintValidation(List **wqueue, Relation scanrel,
 		Assert(tab->partition_constraint == NULL);
 		tab->partition_constraint = (Expr *) linitial(partConstraint);
 		tab->validate_default = validate_default;
+		tab->skip_partition_constraint = skip_partition_constraint;
 	}
 	else if (scanrel->rd_rel->relkind == RELKIND_PARTITIONED_TABLE)
 	{
@@ -17234,7 +17238,8 @@ QueuePartitionConstraintValidation(List **wqueue, Relation scanrel,
 
 			QueuePartitionConstraintValidation(wqueue, part_rel,
 											   thisPartConstraint,
-											   validate_default);
+											   validate_default, 
+											   skip_partition_constraint);
 			table_close(part_rel, NoLock);	/* keep lock till commit */
 		}
 	}
@@ -17483,7 +17488,7 @@ ATExecAttachPartition(List **wqueue, Relation rel, PartitionCmd *cmd,
 
 		/* Validate partition constraints against the table being attached. */
 		QueuePartitionConstraintValidation(wqueue, attachrel, partConstraint,
-										   false);
+										   false, skip_partition_constraint);
 	}
 
 	/*
@@ -17513,7 +17518,7 @@ ATExecAttachPartition(List **wqueue, Relation rel, PartitionCmd *cmd,
 			map_partition_varattnos(defPartConstraint,
 									1, defaultrel, rel);
 		QueuePartitionConstraintValidation(wqueue, defaultrel,
-										   defPartConstraint, true);
+										   defPartConstraint, true, skip_partition_constraint);
 
 		/* keep our lock until commit. */
 		table_close(defaultrel, NoLock);
