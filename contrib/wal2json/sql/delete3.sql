@@ -1,0 +1,1 @@
+../../wal2json-upstream/sql/delete3.sql

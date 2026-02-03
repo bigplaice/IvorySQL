@@ -1,0 +1,1 @@
+../../wal2json-upstream/sql/numeric_data_types_as_string.sql

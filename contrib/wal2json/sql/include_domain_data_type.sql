@@ -1,0 +1,1 @@
+../../wal2json-upstream/sql/include_domain_data_type.sql
