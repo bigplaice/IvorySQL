@@ -4,7 +4,7 @@ MODULE_big = wal2json
 OBJS = \
 	$(WIN32RES) \
 	wal2json.o
-PGFILEDESC = "passwordcheck - strengthen user password checks"
+PGFILEDESC = "wal2json - an output plugin for logical decoding"
 
 # uncomment the following two lines to enable cracklib support
 # PG_CPPFLAGS = -DUSE_CRACKLIB '-DCRACKLIB_DICTPATH="/usr/lib/cracklib_dict"'
